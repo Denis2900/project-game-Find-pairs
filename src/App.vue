@@ -17,7 +17,7 @@
         visibledModalWindow:false,
         visibledPlayingField:false,
         numberOfCard:0,
-        gameOverObject:{statusWin:true,time:'',openCards:0,numberOfHelp:0},
+        gameOverObject:{statusWin:true,time:'',openCards:0,numberOfHelps:0},
         levelTime:0
      }
    },
@@ -67,10 +67,7 @@
      },
      showModalWindow(gameOverObject){
        this.visibledModalWindow = true
-       const arrayOfKeys = Object.keys(this.gameOverObject)
-       arrayOfKeys.forEach((key)=>{
-         this.gameOverObject[key] = gameOverObject[key]
-       })
+       this.gameOverObject = {...gameOverObject}
      },
      newGame(newGameObject){
         this.visibledModalWindow = false

@@ -67,8 +67,10 @@ export default{
                     setTimeout(()=>{;
                         cube.classList.add('rotation-back')
                         cube.classList.remove('rotation-front')
-                        this.currentCube.classList.add('rotation-back')
-                        this.currentCube.classList.remove('rotation-front')   
+                        if(this.currentCube){
+                            this.currentCube.classList.add('rotation-back')
+                            this.currentCube.classList.remove('rotation-front')   
+                        }
                         this.currentCube = null
                         this.waiting = false
                     },1500) 
@@ -125,7 +127,7 @@ export default{
                     child.childNodes.forEach((cub)=>{
                         if(cub.nodeName !== '#text' && cub.getAttribute('addres')===attribute && !cub.classList.contains('rotation-front')){
                           cub.classList.add('rotation-front')
-                          cub.classList.remove('rotation-back')
+                        //   cub.classList.remove('rotation-back')
                           cube = cub
                           attribute = ''
                         } 
@@ -154,6 +156,9 @@ export default{
                 }
                 else{
                     seconds = 60 - this.timerSeconds
+                    if(seconds < 10){
+                        seconds = '0'+seconds
+                    }
                 }
                 this.$emit('gameOver',{statusWin:true,time:`${minutes}:${seconds}`,openCards:this.openCards,numberOfHelps:this.numberOfHelps})
                 this.clearField(cube)

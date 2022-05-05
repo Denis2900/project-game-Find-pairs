@@ -14,7 +14,7 @@
                 Открыты карточки - {{gameOverObject.openCards}}
             </div>
             <div class="modal-window__help">
-                Использованные подсказки - {{gameOverObject.numberOfHelp}}
+                Использованные подсказки - {{3-gameOverObject.numberOfHelps}}
             </div>
             <div class="modal-window__button-block">
                 <StandartButton style="margin:2% 0" @click="$emit('newGame',{restart:true})">Начать заного</StandartButton>
