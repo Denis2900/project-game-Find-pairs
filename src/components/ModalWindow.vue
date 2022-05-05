@@ -46,7 +46,7 @@ export default{
 }
 .modal-window{
     position: absolute;
-    width: 90%;
+    width: 50%;
     background: #fff;
     font-size: 1.3rem;
     padding: 2%;
@@ -72,10 +72,18 @@ export default{
     flex-wrap: wrap;
     justify-content: space-around;
 }
+@media(max-width:700px){
+ .modal-window{
+     width: 90%;
+ }
+}
 @media(max-width:400px){
    .modal-window__button-block{
        justify-content: center;
    }
+    .modal-window{
+        font-size: 1.1rem;
+    }
 }
 @keyframes animation-modal-window {
     0%{

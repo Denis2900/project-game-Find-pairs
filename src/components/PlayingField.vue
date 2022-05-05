@@ -3,6 +3,9 @@
         <div class="field__timer" v-show="stopTimer">
             Оставшиеся время {{this.timerMinutes}}:<span v-show="timerSeconds<10">0</span>{{this.timerSeconds}}
         </div>
+        <div class="field__helps">
+            <p> Подсказки <img src="@/style/icons/helps.png"/></p> <p>x <span class="field__number-Of-helps">{{numberOfHelps}}</span></p> <StandartButton style="font-size: 1.3rem;" @click="usingHelps">Применить</StandartButton>
+        </div>
         <div class="row" v-for="element,ind in array" v-bind:key="ind">
            <div class="cube" v-for="elem,index in element" v-bind:key="index+ind" @click="rotationCube" :addres="`../style/icons/${elem}`">
                 <div class="cube__side cube__front-side">
@@ -25,6 +28,7 @@ export default{
             waiting:false,
             openCards:0,
             timerMinutes:0,
+            numberOfHelps:3,
             timerSeconds:0,
             stopTimer:false
         }
@@ -50,13 +54,14 @@ export default{
                 this.timerMinutes = this.levelTime-1
                 this.stopTimer = true
             }
-            if(event.currentTarget.classList.contains('rotation-front')){
+            if(event.currentTarget.classList.contains('rotation-front') || this.waiting){
                 return null
             }
             event.currentTarget.classList.remove('rotation-back')
             event.currentTarget.classList.add('rotation-front')
             this.playSound('buttonClick')
             if(this.currentCube){
+                this.waiting = true
                 if(this.currentCube.getAttribute('addres')!==event.currentTarget.getAttribute('addres')){
                     const cube = event.currentTarget
                     setTimeout(()=>{;
@@ -65,37 +70,17 @@ export default{
                         this.currentCube.classList.add('rotation-back')
                         this.currentCube.classList.remove('rotation-front')   
                         this.currentCube = null
+                        this.waiting = false
                     },1500) 
                 }
                 else{
                     this.openCards+=2
-                    if(this.openCards === +this.numberOfCards){
-                        this.stopTimer= false
-                        setTimeout(this.playSound('gameWon'),1000)
-                        let minutes
-                        if(this.timerMinutes===0){
-                            minutes = this.levelTime-1
-                        }
-                        else{
-                            minutes = this.levelTime - this.timerMinutes - 1
-                        }
-                        let seconds = 0
-                        if(this.timerSeconds===0){
-                            minutes++
-                        }
-                        else{
-                            seconds = 60 - this.timerSeconds
-                        }
-                        this.$emit('gameOver',{statusWin:true,time:`${minutes}:${seconds}`,openCards:this.openCards,numberOfHelp:3})
-                        this.clearField(event.currentTarget)
-                        this.timerMinutes = null
-                        this.timerSeconds = 0
-                        this.openCards = 0
-                        this.currentCube = null
+                     if(this.checkWin(event.currentTarget)){
                         return null
                     }
                     setTimeout(this.playSound('tryAnswer'),1000)
                     this.currentCube = null
+                    this.waiting = false
                 }
             }
             else{
@@ -118,6 +103,63 @@ export default{
                     })
                 }
             })
+             this.timerMinutes = 0
+             this.timerSeconds = 0
+             this.openCards = 0
+             this.currentCube = null
+             this.numberOfHelps = 3
+             this.waiting = false
+        },
+        usingHelps(event){
+             if(!this.currentCube){
+                 return null
+             }
+             this.numberOfHelps--
+              if(this.numberOfHelps===0){
+                 event.target.setAttribute('disabled',true)
+              }
+              let cube = null
+             let attribute = this.currentCube.getAttribute('addres') 
+             this.currentCube.parentElement.parentElement.childNodes.forEach((child)=>{
+                if(child.nodeName !== '#text' && child.classList.contains('row')){
+                    child.childNodes.forEach((cub)=>{
+                        if(cub.nodeName !== '#text' && cub.getAttribute('addres')===attribute && !cub.classList.contains('rotation-front')){
+                          cub.classList.add('rotation-front')
+                          cub.classList.remove('rotation-back')
+                          cube = cub
+                          attribute = ''
+                        } 
+                    })
+                }
+            })
+            this.currentCube = null
+            this.openCards+=2
+            this.checkWin(cube)
+            this.playSound('tryAnswer')
+        },
+        checkWin(cube){
+            if(this.openCards === +this.numberOfCards){
+                this.stopTimer= false
+                setTimeout(this.playSound('gameWon'),1000)
+                let minutes
+                if(this.timerMinutes===0){
+                    minutes = this.levelTime-1
+                }
+                else{
+                    minutes = this.levelTime - this.timerMinutes - 1
+                }
+                let seconds = 0
+                if(this.timerSeconds===0){
+                    minutes++
+                }
+                else{
+                    seconds = 60 - this.timerSeconds
+                }
+                this.$emit('gameOver',{statusWin:true,time:`${minutes}:${seconds}`,openCards:this.openCards,numberOfHelps:this.numberOfHelps})
+                this.clearField(cube)
+                return true
+            }
+            return null 
         }
     },
     watch:{
@@ -137,7 +179,7 @@ export default{
                             return null
                         }
                         this.timerMinutes--
-                        value = 59
+                        this.timerSeconds = 59
                     }
                 }
             },
@@ -191,7 +233,10 @@ export default{
 .rotation-back{
     animation: cube-rotation-back 1s ease forwards;
 }
-img{
+.cube__front-side img{
+    width: 100%;
+}
+.cube__back-side img{
     width: 100%;
 }
 .row{
@@ -202,6 +247,18 @@ img{
 .field__timer{
     margin: 0 0 5% 0;
     text-align: center;
+    font-size: 2rem;
+}
+.field__helps{
+    font-size: 1.5rem;
+    max-width: 500px;
+    display: flex;
+    flex-wrap: wrap;
+    justify-content: space-between;
+    align-items: center;
+    margin: 5% 2%;
+}
+.field__number-Of-helps{
     font-size: 2rem;
 }
 @keyframes cube-rotation-front {
@@ -243,28 +300,34 @@ img{
     }
 }
 @media (max-width:350px){
-.cube{
-    width: 30px;
-    height: 30px;
-    transform-style: preserve-3d;
-}
-.cube__front-side{
-    transform: translateZ(8px);
-    background: orangered;
-}
-.cube__back-side{
-    transform: rotateY(180deg) translateZ(8px);
-    background: orangered;
-}
-.cube__right-side{
-    width: 16px;
-    transform: rotateY(90deg) translateZ(22px);
-   background: orange;
-}
-.cube__left-side{
-    width: 16px;
-    transform: rotateY(-90deg) translateZ(8px);
-    background: orange;
-}
+    .field__helps{
+     display: block;
+     margin: 5% auto;
+     text-align: center;
+     width: 100%;
+    }
+    .cube{
+        width: 30px;
+        height: 30px;
+        transform-style: preserve-3d;
+    }
+    .cube__front-side{
+        transform: translateZ(8px);
+        background: orangered;
+    }
+    .cube__back-side{
+        transform: rotateY(180deg) translateZ(8px);
+        background: orangered;
+    }
+    .cube__right-side{
+        width: 16px;
+        transform: rotateY(90deg) translateZ(22px);
+       background: orange;
+    }
+    .cube__left-side{
+        width: 16px;
+        transform: rotateY(-90deg) translateZ(8px);
+        background: orange;
+    }
 }
 </style>
