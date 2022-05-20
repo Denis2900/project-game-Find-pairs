@@ -30,7 +30,8 @@ export default{
             timerMinutes:0,
             numberOfHelps:3,
             timerSeconds:0,
-            stopTimer:false
+            stopTimer:false,
+            buttonHelp:null
         }
     },
     props:{
@@ -111,23 +112,25 @@ export default{
              this.currentCube = null
              this.numberOfHelps = 3
              this.waiting = false
+             this.buttonHelp.removeAttribute('disabled')
         },
         usingHelps(event){
+             this.buttonHelp = event.target
              if(!this.currentCube){
                  return null
              }
              this.numberOfHelps--
-              if(this.numberOfHelps===0){
+             if(this.numberOfHelps===0){
                  event.target.setAttribute('disabled',true)
-              }
-              let cube = null
+             }
+             let cube = null
              let attribute = this.currentCube.getAttribute('addres') 
              this.currentCube.parentElement.parentElement.childNodes.forEach((child)=>{
                 if(child.nodeName !== '#text' && child.classList.contains('row')){
                     child.childNodes.forEach((cub)=>{
                         if(cub.nodeName !== '#text' && cub.getAttribute('addres')===attribute && !cub.classList.contains('rotation-front')){
+                          cub.classList.remove('rotation-back')
                           cub.classList.add('rotation-front')
-                        //   cub.classList.remove('rotation-back')
                           cube = cub
                           attribute = ''
                         } 
